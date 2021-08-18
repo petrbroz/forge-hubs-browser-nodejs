@@ -4,26 +4,36 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.css">
-    <link rel="stylesheet" href="https://unpkg.com/simple-treeview/dist/treeview.vanilla.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+    <link rel="stylesheet" href="https://unpkg.com/simple-treeview/dist/treeview.bootstrap.css">
     <link rel="stylesheet" href="/main.css">
-    <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.js"></script>
     <title>Autodesk Forge: Hubs Browser</title>
 </head>
 
-<body>
-    <div id="header">
-        <img class="logo" src="/logo.png" alt="Autodesk Forge">
-        <span class="title">Hubs Browser</span>
-        <button id="login" style="display: none">Login</button>
+<body class="d-flex flex-column">
+    <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="/logo.png" alt="Autodesk Forge" height="24" class="d-inline-block align-text-top"> Hubs Browser
+            </a>
+            <form class="d-flex">
+                <a href="#" class="btn btn-outline-secondary" id="login" style="display: none">Login</a>
+            </form>
+        </div>
+    </nav>
+    <div id="main">
+        <div id="sidebar">
+            <div id="tree"></div>
+        </div>
+        <div id="content">
+            <div id="preview"></div>
+        </div>
     </div>
-    <div id="sidebar">
-        <div id="tree"></div>
-    </div>
-    <div id="preview"></div>
     <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.js"></script>
-    <script src="/main.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="main.js"></script>
 </body>
 
 </html>

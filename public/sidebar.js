@@ -1,4 +1,4 @@
-import { VanillaTreeView } from 'https://unpkg.com/simple-treeview/dist/treeview.vanilla.js';
+import { BootstrapTreeView } from 'https://unpkg.com/simple-treeview/dist/treeview.bootstrap.js';
 
 export function initTree(container, onSelectionChanged) {
     async function getHubs() {
@@ -7,7 +7,7 @@ export function initTree(container, onSelectionChanged) {
         return hubs.map(hub => ({
             id: `hub|${hub.id}`,
             label: hub.attributes.name,
-            icon: { classes: ['fas', 'fa-cloud'] },
+            icon: { classes: ['bi', 'bi-clouds'] },
             state: 'collapsed'
         }));
     }
@@ -18,7 +18,7 @@ export function initTree(container, onSelectionChanged) {
         return projects.map(project => ({
             id: `project|${hubId}|${project.id}`,
             label: project.attributes.name,
-            icon: { classes: ['fas', 'fa-building'] },
+            icon: { classes: ['bi', 'bi-building'] },
             state: 'collapsed'
         }));
     }
@@ -35,14 +35,14 @@ export function initTree(container, onSelectionChanged) {
                 return {
                     id: `folder|${hubId}|${projectId}|${item.id}`,
                     label: item.attributes.displayName,
-                    icon: { classes: ['fas', 'fa-folder'] },
+                    icon: { classes: ['bi', 'bi-folder'] },
                     state: 'collapsed'
                 };
             } else {
                 return {
                     id: `item|${hubId}|${projectId}|${item.id}`,
                     label: item.attributes.displayName,
-                    icon: { classes: ['far', 'fa-file'] },
+                    icon: { classes: ['bi', 'bi-file-earmark'] },
                     state: 'collapsed'
                 };
             }
@@ -55,11 +55,11 @@ export function initTree(container, onSelectionChanged) {
         return versions.map(version => ({
             id: version.id,
             label: version.attributes.displayName,
-            icon: { classes: ['far', 'fa-clock'] }
+            icon: { classes: ['bi', 'bi-calendar-date'] }
         }));
     }
 
-    return new VanillaTreeView(container, {
+    return new BootstrapTreeView(container, {
         provider: {
             async getChildren(id) {
                 if (!id) {

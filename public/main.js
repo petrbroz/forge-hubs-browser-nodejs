@@ -6,7 +6,7 @@ try {
     const resp = await fetch('/api/auth/profile');
     const profile = await resp.json();
     login.innerText = `Logout (${profile.name})`;
-    login.onclick = () => window.location.replace('/api/auth/logout');
+    login.href = '/api/auth/logout';
     const viewer = await initViewer(document.getElementById('preview'));
     initTree(document.getElementById('tree'), function (nodes) {
         if (nodes.length === 1) {
@@ -16,6 +16,6 @@ try {
     });
 } catch (err) {
     login.innerText = 'Login';
-    login.onclick = () => window.location.replace('/api/auth/login');
+    login.href = '/api/auth/login';
 }
 login.style.display = 'inline';
