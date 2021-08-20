@@ -1,32 +1,27 @@
-const { AuthClientThreeLegged, UserProfileApi, HubsApi, ProjectsApi, FoldersApi, ItemsApi } = require('forge-apis');
+const { AuthenticationClient, DataManagementClient } = require('simpler-forge-apis');
 
 const { FORGE_CLIENT_ID, FORGE_CLIENT_SECRET, FORGE_CALLBACK_URL } = process.env;
 if (!FORGE_CLIENT_ID || !FORGE_CLIENT_SECRET || !FORGE_CALLBACK_URL) {
     console.warn('Missing some of the environment variables.');
     process.exit(1);
 }
-const INTERNAL_TOKEN_SCOPES = ['data:read'];
+const INTERNAL_TOKEN_SCOPES = ['data:read', 'viewables:read'];
 const PUBLIC_TOKEN_SCOPES = ['viewables:read'];
 
-function getAuthorizationUrl() {
-    return 'https://developer.api.autodesk.com' +
-        '/authentication/v1/authorize?response_type=code' +
-        '&client_id=' + FORGE_CLIENT_ID +
-        '&redirect_uri=' + FORGE_CALLBACK_URL +
-        '&scope=' + INTERNAL_TOKEN_SCOPES.join(' ');
-}
-
-const internalAuthClient = new AuthClientThreeLegged(FORGE_CLIENT_ID, FORGE_CLIENT_SECRET, FORGE_CALLBACK_URL, INTERNAL_TOKEN_SCOPES);
-const publicAuthClient = new AuthClientThreeLegged(FORGE_CLIENT_ID, FORGE_CLIENT_SECRET, FORGE_CALLBACK_URL, PUBLIC_TOKEN_SCOPES);
+let authenticationClient = new AuthenticationClient(FORGE_CLIENT_ID, FORGE_CLIENT_SECRET);
 
 async function authCallbackMiddleware(req, res, next) {
-    const internalCredentials = await internalAuthClient.getToken(req.query.code);
-    const publicCredentials = await publicAuthClient.refreshToken(internalCredentials);
-    req.session.public_token = publicCredentials.access_token;
-    req.session.internal_token = internalCredentials.access_token;
-    req.session.refresh_token = publicCredentials.refresh_token;
-    req.session.expires_at = Date.now() + internalCredentials.expires_in * 1000;
-    next();
+    try {
+        const internalToken = await authenticationClient.getToken(req.query.code, FORGE_CALLBACK_URL);
+        const publicToken = await authenticationClient.refreshToken(internalToken.refresh_token, PUBLIC_TOKEN_SCOPES);
+        req.session.internal_token = internalToken.access_token;
+        req.session.public_token = publicToken.access_token;
+        req.session.refresh_token = publicToken.refresh_token;
+        req.session.expires_at = Date.now() + internalToken.expires_in * 1000;
+        next();
+    } catch (err) {
+        next(err);
+    }
 }
 
 async function authRefreshMiddleware(req, res, next) {
@@ -36,53 +31,55 @@ async function authRefreshMiddleware(req, res, next) {
         return;
     }
 
-    if (expires_at < Date.now()) {
-        const internalCredentials = await internalAuthClient.refreshToken({ refresh_token });
-        const publicCredentials = await publicAuthClient.refreshToken(internalCredentials);
-        req.session.public_token = publicCredentials.access_token;
-        req.session.internal_token = internalCredentials.access_token;
-        req.session.refresh_token = publicCredentials.refresh_token;
-        req.session.expires_at = Date.now() + internalCredentials.expires_in * 1000;
+    try {
+        if (expires_at < Date.now()) {
+            const internalToken = await authenticationClient.refreshToken(refresh_token, INTERNAL_TOKEN_SCOPES);
+            const publicToken = await authenticationClient.refreshToken(refresh_token, PUBLIC_TOKEN_SCOPES);
+            req.session.internal_token = internalToken.access_token;
+            req.session.public_token = publicToken.access_token;
+            req.session.refresh_token = publicToken.refresh_token;
+            req.session.expires_at = Date.now() + internalToken.expires_in * 1000;
+        }
+        req.internalOAuthToken = {
+            access_token: req.session.internal_token,
+            expires_in: Math.round((req.session.expires_at - Date.now()) / 1000)
+        };
+        req.publicOAuthToken = {
+            access_token: req.session.public_token,
+            expires_in: Math.round((req.session.expires_at - Date.now()) / 1000)
+        };
+        next();
+    } catch (err) {
+        next(err);
     }
-    req.internalOAuthToken = {
-        access_token: req.session.internal_token,
-        expires_in: Math.round((req.session.expires_at - Date.now()) / 1000)
-    };
-    req.publicOAuthToken = {
-        access_token: req.session.public_token,
-        expires_in: Math.round((req.session.expires_at - Date.now()) / 1000)
-    };
-    next();
+}
+
+function getAuthorizationUrl() {
+    return authenticationClient.getAuthorizationUrl(INTERNAL_TOKEN_SCOPES, FORGE_CALLBACK_URL);
 }
 
 async function getUserProfile(token) {
-    const resp = await new UserProfileApi().getUserProfile(internalAuthClient, token);
-    return resp.body;
+    return authenticationClient.getUserProfile(token);
 }
 
 async function getHubs(token) {
-    const resp = await new HubsApi().getHubs(null, internalAuthClient, token);
-    return resp.body.data;
+    return new DataManagementClient(token).listHubs();
 }
 
 async function getProjects(hubId, token) {
-    const resp = await new ProjectsApi().getHubProjects(hubId, null, internalAuthClient, token);
-    return resp.body.data;
+    return new DataManagementClient(token).listProjects(hubId);
 }
 
 async function getProjectContents(hubId, projectId, folderId, token) {
     if (!folderId) {
-        const resp = await new ProjectsApi().getProjectTopFolders(hubId, projectId, internalAuthClient, token);
-        return resp.body.data;
+        return new DataManagementClient(token).listProjecFolders(hubId, projectId);
     } else {
-        const resp = await new FoldersApi().getFolderContents(projectId, folderId, null, internalAuthClient, token);
-        return resp.body.data;
+        return new DataManagementClient(token).listFolderContents(projectId, folderId);
     }
 }
 
 async function getItemVersions(projectId, itemId, token) {
-    const resp = await new ItemsApi().getItemVersions(projectId, itemId, null, internalAuthClient, token);
-    return resp.body.data;
+    return new DataManagementClient(token).listItemVersions(projectId, itemId);
 }
 
 module.exports = {

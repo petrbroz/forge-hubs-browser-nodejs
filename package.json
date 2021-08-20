@@ -14,7 +14,7 @@
   "dependencies": {
     "cookie-session": "^1.4.0",
     "express": "^4.17.1",
-    "forge-apis": "^0.8.6"
+    "simpler-forge-apis": "0.0.6"
   },
   "devDependencies": {
     "@types/forge-viewer": "^7.48.0"
