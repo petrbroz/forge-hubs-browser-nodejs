@@ -17,6 +17,7 @@ export function initViewer(container) {
         Autodesk.Viewing.Initializer({ getAccessToken }, async function () {
             const viewer = new Autodesk.Viewing.GuiViewer3D(container);
             viewer.start();
+            viewer.loadExtension('NestedViewerExtension', { filter: ['2d', '3d'], crossSelection: true });
             viewer.setTheme('light-theme');
             resolve(viewer);
         });
