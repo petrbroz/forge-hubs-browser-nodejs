@@ -24,12 +24,14 @@ export function initViewer(container) {
 }
 
 export function loadModel(viewer, urn) {
-    function onDocumentLoadSuccess(doc) {
-        viewer.loadDocumentNode(doc, doc.getRoot().getDefaultGeometry());
-    }
-    function onDocumentLoadFailure(code, message) {
-        alert('Could not load model. See console for more details.');
-        console.error(message);
-    }
-    Autodesk.Viewing.Document.load('urn:' + urn, onDocumentLoadSuccess, onDocumentLoadFailure);
+    return new Promise(function (resolve, reject) {
+        function onDocumentLoadSuccess(doc) {
+            resolve(viewer.loadDocumentNode(doc, doc.getRoot().getDefaultGeometry()));
+        }
+        function onDocumentLoadFailure(code, message, errors) {
+            reject({ code, message, errors });
+        }
+        viewer.setLightPreset(0);
+        Autodesk.Viewing.Document.load('urn:' + urn, onDocumentLoadSuccess, onDocumentLoadFailure);
+    });
 }
