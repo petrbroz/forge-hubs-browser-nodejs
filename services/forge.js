@@ -8,40 +8,22 @@ function getAuthorizationUrl() {
     return internalAuthClient.generateAuthUrl();
 }
 
-async function authCallbackMiddleware(req, res, next) {
-    const internalCredentials = await internalAuthClient.getToken(req.query.code);
+async function generateTokens(code) {
+    const internalCredentials = await internalAuthClient.getToken(code);
     const publicCredentials = await publicAuthClient.refreshToken(internalCredentials);
-    req.session.public_token = publicCredentials.access_token;
-    req.session.internal_token = internalCredentials.access_token;
-    req.session.refresh_token = publicCredentials.refresh_token;
-    req.session.expires_at = Date.now() + internalCredentials.expires_in * 1000;
-    next();
+    return {
+        internal: internalCredentials,
+        public: publicCredentials
+    };    
 }
 
-async function authRefreshMiddleware(req, res, next) {
-    const { refresh_token, expires_at } = req.session;
-    if (!refresh_token) {
-        res.status(401).end();
-        return;
-    }
-
-    if (expires_at < Date.now()) {
-        const internalCredentials = await internalAuthClient.refreshToken({ refresh_token });
-        const publicCredentials = await publicAuthClient.refreshToken(internalCredentials);
-        req.session.public_token = publicCredentials.access_token;
-        req.session.internal_token = internalCredentials.access_token;
-        req.session.refresh_token = publicCredentials.refresh_token;
-        req.session.expires_at = Date.now() + internalCredentials.expires_in * 1000;
-    }
-    req.internalOAuthToken = {
-        access_token: req.session.internal_token,
-        expires_in: Math.round((req.session.expires_at - Date.now()) / 1000)
+async function refreshTokens(refresh) {
+    const internalCredentials = await internalAuthClient.refreshToken({ refresh_token: refresh });
+    const publicCredentials = await publicAuthClient.refreshToken(internalCredentials);
+    return {
+        internal: internalCredentials,
+        public: publicCredentials
     };
-    req.publicOAuthToken = {
-        access_token: req.session.public_token,
-        expires_in: Math.round((req.session.expires_at - Date.now()) / 1000)
-    };
-    next();
 }
 
 async function getUserProfile(token) {
@@ -76,8 +58,8 @@ async function getItemVersions(projectId, itemId, token) {
 
 module.exports = {
     getAuthorizationUrl,
-    authCallbackMiddleware,
-    authRefreshMiddleware,
+    generateTokens,
+    refreshTokens,
     getUserProfile,
     getHubs,
     getProjects,

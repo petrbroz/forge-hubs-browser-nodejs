@@ -1,5 +1,6 @@
 const express = require('express');
-const { getAuthorizationUrl, authCallbackMiddleware, authRefreshMiddleware, getUserProfile } = require('../services/forge.js');
+const { getAuthorizationUrl, generateTokens, getUserProfile } = require('../services/forge.js');
+const { authRefreshMiddleware } = require('../helpers.js');
 
 let router = express.Router();
 
@@ -12,8 +13,17 @@ router.get('/logout', function (req, res) {
     res.redirect('/');
 });
 
-router.get('/callback', authCallbackMiddleware, function (req, res) {
-    res.redirect('/');
+router.get('/callback', async function (req, res) {
+    try {
+        const { internal, public } = await generateTokens(req.query.code);
+        req.session.public_token = public.access_token;
+        req.session.internal_token = internal.access_token;
+        req.session.refresh_token = public.refresh_token;
+        req.session.expires_at = Date.now() + internal.expires_in * 1000;
+        res.redirect('/');
+    } catch (err) {
+        next(err);
+    }
 });
 
 router.get('/token', authRefreshMiddleware, function (req, res) {

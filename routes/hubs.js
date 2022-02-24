@@ -1,5 +1,6 @@
 const express = require('express');
-const { authRefreshMiddleware, getHubs, getProjects, getProjectContents, getItemVersions } = require('../services/forge.js');
+const { getHubs, getProjects, getProjectContents, getItemVersions } = require('../services/forge.js');
+const { authRefreshMiddleware } = require('../helpers.js');
 
 let router = express.Router();
 
