@@ -1,6 +1,6 @@
 export class ModelPropsFilter {
     constructor(container, options) {
-        this.fields = options.fields; // expecting an array of { key: string, name: string, type: string }
+        this.fields = options.fields;
         this.root = this.createRoot();
         container.appendChild(this.root);
     }
@@ -14,13 +14,33 @@ export class ModelPropsFilter {
         if (el.classList.contains('group')) {
             const children = [];
             el.querySelectorAll(':scope > ul > li').forEach(li => children.push(this.getQuery(li.firstChild)));
-            return {
-                [op]: children
-            };
+            if (children.length > 0) {
+                return { [op]: children };
+            } else {
+                return {};
+            }
         } else if (el.classList.contains('condition')) {
-            return {
-                [op]: [`s.props.${el.querySelector(':scope > .inputs > select.field').value}`, `'${el.querySelector(':scope > .inputs > input.value').value}'`]
-            };
+            const selectedFieldKey = el.querySelector('.field').value;
+            const selectedField = this.fields.find(field => field.key === selectedFieldKey);
+            const propName = `s.props.${el.querySelector(':scope > .inputs > select.field').value}`;
+            switch (selectedField.type) {
+                case 'Double':
+                    return {
+                        [op]: [propName, parseFloat(el.querySelector(':scope > .inputs > input.value').value)]
+                    };
+                case 'Integer':
+                    return {
+                        [op]: [propName, parseInt(el.querySelector(':scope > .inputs > input.value').value)]
+                    };
+                case 'String':
+                    return {
+                        [op]: [propName, `'${el.querySelector(':scope > .inputs > input.value').value}'`]
+                    };
+                case 'Boolean':
+                    return {
+                        [op]: [propName, el.querySelector(':scope > .inputs > input.value').checked]
+                    };
+            }
         }
     }
 
@@ -78,7 +98,70 @@ export class ModelPropsFilter {
                 </div>
             </div>
         `;
+        el.querySelector('.field').onchange = () => this.updateCondition(el);
+        this.updateCondition(el);
         return el;
+    }
+
+    updateCondition(el) {
+        const field = el.querySelector('.field');
+        const op = el.querySelector('.op');
+        const value = el.querySelector('.value');
+        const selectedFieldKey = field.value;
+        const selectedField = this.fields.find(field => field.key === selectedFieldKey);
+        switch (selectedField.type) {
+            // Unknown, Boolean, Integer, Double, Blob, DbKey, String, LocalizableString, DateTime, GeoLocation, Position
+            case 'String':
+                op.innerHTML = `
+                    <option value="$eq" selected>==</option>
+                    <option value="$ne">!=</option>
+                    <option value="$like">LIKE</option>
+                `;
+                value.setAttribute('type', 'text');
+                value.value = '';
+                value.removeAttribute('readonly');
+                break;
+            case 'Double':
+                op.innerHTML = `
+                    <option value="$lt">&lt;</option>
+                    <option value="$le">&le;</option>
+                    <option value="$eq" selected>==</option>
+                    <option value="$ne">!=</option>
+                    <option value="$ge">&ge;</option>
+                    <option value="$gt">&gt;</option>
+                `;
+                value.setAttribute('type', 'number');
+                value.setAttribute('step', '0.01');
+                value.value = 0.0;
+                value.removeAttribute('readonly');
+                break;
+            case 'Integer':
+                op.innerHTML = `
+                    <option value="$lt">&lt;</option>
+                    <option value="$le">&le;</option>
+                    <option value="$eq" selected>==</option>
+                    <option value="$ne">!=</option>
+                    <option value="$ge">&ge;</option>
+                    <option value="$gt">&gt;</option>
+                `;
+                value.setAttribute('type', 'number');
+                value.setAttribute('step', '1');
+                value.value = 0;
+                value.removeAttribute('readonly');
+                break;
+            case 'Boolean':
+                op.innerHTML = `
+                    <option value="$eq" selected>==</option>
+                `;
+                value.setAttribute('type', 'checkbox');
+                value.value = false;
+                value.removeAttribute('readonly');
+                break;
+            default:
+                value.setAttribute('type', 'text');
+                value.setAttribute('readonly', 'true');
+                value.value = `Field type ${selectedField.type} not supported`;
+        }
     }
 
     addChild(group, child) {
