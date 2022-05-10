@@ -20,7 +20,7 @@ export async function initFilter(container, projectId, versionUrn, onResultsRead
             executeQuery(projectId, index.indexId, query, onResultsReady);
         };
     } else {
-        container.innerHTML = `Index is currently in state ${filter.state}. Try again later...`;
+        container.innerHTML = `Index is currently in state ${index.state}. Try again later...`;
     }
 }
 
