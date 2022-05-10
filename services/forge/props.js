@@ -27,7 +27,8 @@ async function getIndexFields(projectId, indexId, accessToken) {
     };
     const url = `${ApiHost}/construction/index/v2/projects/${projectId.replace('b.', '')}/indexes/${indexId}/fields`;
     const resp = await axios.get(url, { headers });
-    const lines = resp.data.split('\n').filter(line => line.trim().length > 0);
+    const data = typeof resp.data === 'string' ? resp.data : JSON.stringify(resp.data);
+    const lines = data.split('\n').filter(line => line.trim().length > 0);
     return lines.map(line => JSON.parse(line));
 }
 
@@ -61,7 +62,8 @@ async function getQueryResults(projectId, indexId, queryId, accessToken) {
     };
     const url = `${ApiHost}/construction/index/v2/projects/${projectId.replace('b.', '')}/indexes/${indexId}/queries/${queryId}/properties`;
     const resp = await axios.get(url, { headers });
-    const lines = resp.data.split('\n').filter(line => line.trim().length > 0);
+    const data = typeof resp.data === 'string' ? resp.data : JSON.stringify(resp.data);
+    const lines = data.split('\n').filter(line => line.trim().length > 0);
     return lines.map(line => JSON.parse(line));
 }
 
