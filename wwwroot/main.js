@@ -13,6 +13,10 @@ try {
         initTree('#tree', function (projectId, versionUrn) {
             unloadModel(viewer);
             initFilter(document.getElementById('filter'), projectId, versionUrn, function (results) {
+                if (results.length === 0) {
+                    alert('No results were found for this query.');
+                    return;
+                }
                 const urn = window.btoa(versionUrn).replace(/=/g, '').replace('/', '_');
                 const dbids = results.map(result => result.lmvId);
                 loadModel(viewer, urn, dbids);
