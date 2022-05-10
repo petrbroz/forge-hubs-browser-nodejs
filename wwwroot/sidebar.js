@@ -35,7 +35,7 @@ async function getContents(hubId, projectId, folderId = null) {
 
 async function getVersions(hubId, projectId, itemId) {
     const versions = await getJSON(`/api/hubs/${hubId}/projects/${projectId}/contents/${itemId}/versions`);
-    return versions.map(version => createTreeNode(`version|${version.id}`, version.attributes.createTime, 'icon-version'));
+    return versions.map(version => createTreeNode(`version|${projectId}|${version.id}`, version.attributes.createTime, 'icon-version'));
 }
 
 export function initTree(selector, onSelectionChanged) {
@@ -60,7 +60,7 @@ export function initTree(selector, onSelectionChanged) {
         event.preventTreeDefault();
         const tokens = node.id.split('|');
         if (tokens[0] === 'version') {
-            onSelectionChanged(tokens[1]);
+            onSelectionChanged(tokens[1], tokens[2]);
         }
     });
     return new InspireTreeDOM(tree, { target: selector });

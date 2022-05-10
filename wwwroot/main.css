@@ -1,3 +1,8 @@
+@font-face {
+    font-family: 'ArtifaktElement';
+    src: url('/fonts/Artifakt_Element_Regular.woff2') format('woff2');
+}
+
 body, html {
     margin: 0;
     padding: 0;
@@ -5,13 +10,15 @@ body, html {
     font-family: ArtifaktElement;
 }
 
-#header, #sidebar, #preview {
+#header, #sidebar, #filter, #preview {
     position: absolute;
 }
 
 #header {
+    top: 0;
+    left: 0;
+    right: 0;
     height: 3em;
-    width: 100%;
     display: flex;
     flex-flow: row nowrap;
     justify-content: space-between;
@@ -19,17 +26,25 @@ body, html {
 }
 
 #sidebar {
-    width: 25%;
-    left: 0;
     top: 3em;
+    left: 0;
     bottom: 0;
+    width: 25%;
+    overflow-y: scroll;
+}
+
+#filter {
+    top: 3em;
+    left: 25%;
+    right: 0;
+    height: 15em;
     overflow-y: scroll;
 }
 
 #preview {
-    width: 75%;
+    top: 18em;
+    left: 25%;
     right: 0;
-    top: 3em;
     bottom: 0;
 }
 
@@ -52,7 +67,7 @@ body, html {
     margin: 0.5em;
 }
 
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
     #sidebar {
         width: 100%;
         top: 3em;
@@ -63,7 +78,7 @@ body, html {
         top: 25%;
         bottom: 0;
     }
-}
+} */
 
 .icon-hub:before {
     background-image: url(https://raw.githubusercontent.com/primer/octicons/main/icons/apps-16.svg); /* or https://raw.githubusercontent.com/primer/octicons/main/icons/stack-16.svg */

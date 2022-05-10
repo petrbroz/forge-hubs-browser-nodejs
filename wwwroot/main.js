@@ -1,5 +1,6 @@
-import { initViewer, loadModel } from './viewer.js';
 import { initTree } from './sidebar.js';
+import { initViewer, loadModel, unloadModel } from './viewer.js';
+import { initFilter } from './filter.js';
 
 const login = document.getElementById('login');
 try {
@@ -7,19 +8,16 @@ try {
     if (resp.ok) {
         const user = await resp.json();
         login.innerText = `Logout (${user.name})`;
-        login.onclick = () => {
-            // Log the user out (see https://forge.autodesk.com/blog/log-out-forge)
-            const iframe = document.createElement('iframe');
-            iframe.style.visibility = 'hidden';
-            iframe.src = 'https://accounts.autodesk.com/Authentication/LogOut';
-            document.body.appendChild(iframe);
-            iframe.onload = () => {
-                window.location.replace('/api/auth/logout');
-                document.body.removeChild(iframe);
-            };
-        }
+        login.onclick = () => window.location.replace('/api/auth/logout');
         const viewer = await initViewer(document.getElementById('preview'));
-        initTree('#tree', (id) => loadModel(viewer, window.btoa(id).replace(/=/g, '')));
+        initTree('#tree', function (projectId, versionUrn) {
+            unloadModel(viewer);
+            initFilter(document.getElementById('filter'), projectId, versionUrn, function (results) {
+                const urn = window.btoa(versionUrn).replace(/=/g, '').replace('/', '_');
+                const dbids = results.map(result => result.lmvId);
+                loadModel(viewer, urn, dbids);
+            });
+        });
     } else {
         login.innerText = 'Login';
         login.onclick = () => window.location.replace('/api/auth/login');

@@ -1,0 +1,51 @@
+.model-props-filter ul {
+    margin: 0;
+    list-style-image: url(https://icongr.am/clarity/child-arrow.svg?size=16&color=d3d3d3);
+}
+
+.model-props-filter .inputs {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.model-props-filter .inputs>* {
+    min-width: 3em;
+    flex-shrink: 1;
+}
+
+.model-props-filter .inputs>*,
+.model-props-filter .actions>* {
+    margin: 0.25em;
+}
+
+.model-props-filter .group,
+.model-props-filter .condition {
+    border-radius: 0.5em;
+    border: 1px solid lightgray;
+    padding: 0.25em;
+    margin: 0.25em;
+}
+
+.model-props-filter .actions {
+    margin-left: auto;
+    visibility: hidden;
+}
+
+.model-props-filter .actions > button {
+    border: 1px solid lightgray;
+    border-radius: 0.5em;
+    color: lightgray;
+    background-color: transparent;
+}
+
+.model-props-filter .actions > button:hover {
+    color: gray;
+    border-color: gray;
+}
+
+.model-props-filter .inputs:hover>.actions,
+.model-props-filter .inputs:hover>.actions {
+    visibility: visible;
+}
